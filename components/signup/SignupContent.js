@@ -42,7 +42,7 @@ export function SignupContent() {
 
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
         <motion.div
-          initial={{ opacity: 0, y: 14 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="mb-8 rounded-2xl border border-[var(--moifone-border)] bg-white/90 px-5 py-4 shadow-sm backdrop-blur-sm sm:px-6"
@@ -64,7 +64,7 @@ export function SignupContent() {
 
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
           <motion.aside
-            initial={{ opacity: 0, x: -12 }}
+            initial={false}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-5"
@@ -122,7 +122,7 @@ export function SignupContent() {
           </motion.aside>
 
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             className="lg:col-span-7"

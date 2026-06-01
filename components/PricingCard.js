@@ -22,7 +22,7 @@ export function PricingCard({ plan, index = 0 }) {
       )}
 
       <motion.article
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-50px" }}
         transition={{

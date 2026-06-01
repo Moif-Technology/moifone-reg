@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import { parsePhoneNumber } from "libphonenumber-js";
@@ -47,30 +47,51 @@ function plansToOptions(plans) {
   }));
 }
 
+const fallbackPlanOptions = plansToOptions(pricingPlans);
+
+function getBrowserApiBase() {
+  const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (typeof window === "undefined" || !configured) return configured;
+
+  try {
+    const url = new URL(configured);
+    const pageHost = window.location.hostname;
+    const configuredIsLocal =
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "::1";
+
+    if (configuredIsLocal && pageHost && pageHost !== "localhost") {
+      url.hostname = pageHost;
+      return url.toString().replace(/\/$/, "");
+    }
+  } catch {
+    return configured;
+  }
+
+  return configured;
+}
+
 export function SignupForm({ initialPlanId }) {
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [planOptions, setPlanOptions] = useState([]);
+  const [planOptions, setPlanOptions] = useState(fallbackPlanOptions);
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const fallbackPlanOptions = useMemo(
-    () => plansToOptions(pricingPlans),
-    []
-  );
-
   useEffect(() => {
-    const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-    if (!base) {
-      setPlanOptions(fallbackPlanOptions);
-      return;
-    }
+    const base = getBrowserApiBase();
+    if (!base) return;
+
     let cancelled = false;
-    fetch(`${base}/api/plans`)
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+
+    fetch(`${base}/api/plans`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
@@ -82,11 +103,16 @@ export function SignupForm({ initialPlanId }) {
       })
       .catch(() => {
         if (!cancelled) setPlanOptions(fallbackPlanOptions);
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
       });
     return () => {
       cancelled = true;
+      window.clearTimeout(timeoutId);
+      controller.abort();
     };
-  }, [fallbackPlanOptions]);
+  }, []);
 
   useEffect(() => {
     if (!planOptions.length) return;
@@ -136,7 +162,7 @@ export function SignupForm({ initialPlanId }) {
     setApiError("");
     if (!validate()) return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+    const baseUrl = getBrowserApiBase();
     if (!baseUrl) {
       setApiError("Registration is not configured (missing NEXT_PUBLIC_API_URL).");
       return;
@@ -159,10 +185,14 @@ export function SignupForm({ initialPlanId }) {
     };
 
     setSubmitting(true);
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+
     try {
       const res = await fetch(`${baseUrl}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
@@ -174,6 +204,7 @@ export function SignupForm({ initialPlanId }) {
     } catch {
       setApiError("Could not reach the server. Check your connection and try again.");
     } finally {
+      window.clearTimeout(timeoutId);
       setSubmitting(false);
     }
   }

@@ -74,7 +74,7 @@ export function Hero() {
 
         <FadeIn delay={0.12} y={28} className="relative lg:justify-self-end">
           <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
             className="relative mx-auto w-full max-w-md"
@@ -111,7 +111,7 @@ export function Hero() {
                     </div>
                     <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[var(--moifone-border)]">
                       <motion.div
-                        initial={{ width: 0 }}
+                        initial={false}
                         animate={{ width: `${row.pct}%` }}
                         transition={{
                           duration: 1,
@@ -145,7 +145,7 @@ export function Hero() {
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.5 }}
               className="absolute -bottom-6 -left-4 hidden w-[52%] rounded-xl border border-[var(--moifone-border)] bg-white/95 p-3 shadow-lg backdrop-blur sm:block"
@@ -160,7 +160,7 @@ export function Hero() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.65, duration: 0.5 }}
               className="absolute -right-2 top-8 hidden rounded-lg border border-[var(--moifone-border)] bg-white/90 px-3 py-2 text-[10px] font-medium text-[var(--moifone-primary)] shadow-md sm:block"
