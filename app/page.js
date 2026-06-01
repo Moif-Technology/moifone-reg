@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { SidebarNav } from "@/components/SidebarNav";
 import { Hero } from "@/components/sections/Hero";
 import { BusinessTypes } from "@/components/sections/BusinessTypes";
 import { Features } from "@/components/sections/Features";
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
+      <SidebarNav />
       <main className="flex-1">
         <Hero />
         <BusinessTypes />

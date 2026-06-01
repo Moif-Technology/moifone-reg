@@ -39,7 +39,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--moifone-border)]/80 bg-[var(--moifone-bg)]/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[var(--moifone-border)]/80 bg-[var(--moifone-bg)]/90 shadow-sm backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <BrandMark className="text-lg sm:text-xl" />
 

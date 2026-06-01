@@ -1,92 +1,87 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { featureGroups } from "@/data/features";
-import { FadeIn } from "@/components/ui/FadeIn";
+import { featureItems } from "@/data/features";
 
 const ease = [0.22, 1, 0.36, 1];
+
+// Pattern: 3 cards, 2 cards (indented), 3 cards, 2 cards (indented), 3 cards
+const rows = (() => {
+  const slices = [
+    { range: [0, 3],  indent: false },
+    { range: [3, 5],  indent: true  },
+    { range: [5, 8],  indent: false },
+    { range: [8, 10], indent: true  },
+    { range: [10, 13],indent: false },
+  ];
+  let idx = 0;
+  return slices.map(({ range, indent }) => ({
+    indent,
+    items: featureItems.slice(...range).map((f) => ({ ...f, idx: idx++ })),
+  }));
+})();
 
 export function Features() {
   return (
     <section
       id="features"
-      className="scroll-mt-24 border-b border-[var(--moifone-border)]/60 bg-white/40 py-14 sm:py-20"
+      className="relative scroll-mt-24 overflow-hidden border-b border-[var(--moifone-border)]/60 bg-[var(--moifone-bg)] py-10 sm:py-14"
     >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <FadeIn className="mx-auto max-w-2xl text-center sm:mx-0 sm:max-w-none sm:text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--moifone-primary)]">
+      {/* Reddish background blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[10%] top-[10%] h-80 w-80 rounded-full bg-[#f9c5d0] opacity-50 blur-[100px]" />
+        <div className="absolute left-[55%] top-[5%]  h-64 w-64 rounded-full bg-[#e8c5f0] opacity-35 blur-[85px]" />
+        <div className="absolute left-[28%] top-[42%] h-96 w-96 rounded-full bg-[#fce4ec] opacity-40 blur-[110px]" />
+        <div className="absolute left-[68%] top-[52%] h-72 w-72 rounded-full bg-[#f5b8c8] opacity-30 blur-[90px]" />
+        <div className="absolute left-[4%]  top-[68%] h-56 w-56 rounded-full bg-[#f0c0d8] opacity-35 blur-[75px]" />
+      </div>
+
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--moifone-primary)]">
             Platform
           </p>
-          <h2 className="mt-2.5 text-2xl font-semibold tracking-tight text-[var(--moifone-ink)] sm:text-3xl">
+          <h2 className="mt-3 text-2xl font-bold tracking-tight text-[var(--moifone-ink)] sm:text-3xl">
             Intelligent operations, grounded in your data
           </h2>
-          <p className="mt-2.5 text-sm leading-snug text-[var(--moifone-muted)] sm:max-w-xl sm:text-[0.9375rem]">
-            ERP and POS in one place—subtle automation and signals so teams stay
-            fast without noisy dashboards.
-          </p>
-        </FadeIn>
+        </div>
 
-        <div className="mt-10 space-y-8 sm:mt-11 sm:space-y-9">
-          {featureGroups.map((group, gi) => {
-            const offset = featureGroups
-              .slice(0, gi)
-              .reduce((n, g) => n + g.items.length, 0);
+        {/* Staggered rows — 6-col grid, each card spans 2 cols */}
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {rows.map((row, ri) => (
+            <div key={ri} className="grid grid-cols-6 gap-3 sm:gap-4">
+              {/* 1-col spacer shifts 2-item rows to center (col 1 + col 6 both empty) */}
+              {row.indent && <div />}
 
-            return (
-              <div key={group.id}>
-                <FadeIn delay={gi * 0.04}>
-                  <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--moifone-muted)]/75 sm:text-left">
-                    {group.label}
+              {row.items.map((f) => (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-30px" }}
+                  transition={{ duration: 0.42, delay: f.idx * 0.04, ease }}
+                  whileHover={{ y: -3, transition: { duration: 0.2, ease } }}
+                  className="col-span-2 rounded-xl border border-[var(--moifone-border)] bg-white/80 p-4 shadow-sm backdrop-blur-sm"
+                >
+                  <p className="mb-1.5 text-[10px] font-bold tracking-widest text-[var(--moifone-primary)]/50">
+                    {f.idx + 1}.
                   </p>
-                </FadeIn>
-                <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4 xl:gap-4">
-                  {group.items.map((f, i) => {
-                    const Icon = f.icon;
-                    const staggerIndex = offset + i;
-                    return (
-                      <motion.div
-                        key={f.title}
-                        initial={false}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-32px" }}
-                        transition={{
-                          duration: 0.42,
-                          delay: staggerIndex * 0.035,
-                          ease,
-                        }}
-                        whileHover={{
-                          y: -2,
-                          transition: { duration: 0.25, ease },
-                        }}
-                        className={`flex flex-col rounded-xl border bg-white/90 p-4 shadow-[0_1px_12px_-2px_rgba(26,20,24,0.06)] transition-shadow duration-300 hover:shadow-[0_6px_24px_-6px_rgba(26,20,24,0.08)] sm:p-4 ${
-                          f.signals
-                            ? "border-[#ebe0e4]/90 ring-1 ring-[#7b1e3a]/[0.05]"
-                            : "border-[var(--moifone-border)]/90"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--moifone-primary)]/[0.07] text-[var(--moifone-primary)]">
-                            <Icon className="h-4 w-4" strokeWidth={1.75} />
-                          </span>
-                          {f.signals && (
-                            <span className="rounded bg-[var(--moifone-rose-mist)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[var(--moifone-primary)]/85">
-                              Signals
-                            </span>
-                          )}
-                        </div>
-                        <h3 className="mt-3 text-sm font-semibold leading-snug text-[var(--moifone-ink)]">
-                          {f.title}
-                        </h3>
-                        <p className="mt-1.5 text-xs leading-snug text-[var(--moifone-muted)]">
-                          {f.description}
-                        </p>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
+                  <h3 className="text-sm font-semibold leading-snug text-[var(--moifone-ink)]">
+                    {f.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[var(--moifone-muted)]">
+                    {f.description}
+                  </p>
+                  {f.signals && (
+                    <span className="mt-2 inline-block rounded bg-[var(--moifone-rose-mist)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[var(--moifone-primary)]/80">
+                      Signals
+                    </span>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>

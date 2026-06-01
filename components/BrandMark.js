@@ -1,14 +1,21 @@
 import Link from "next/link";
 
-export function BrandMark({ href = "/", className = "" }) {
+export function BrandMark({ href = "/", className = "", variant = "default" }) {
   const inner = (
-    <span
-      className={`font-semibold tracking-tight text-[var(--moifone-ink)] ${className}`}
-    >
-      <span className="bg-gradient-to-r from-[#7b1e3a] to-[#9a2d4a] bg-clip-text text-transparent">
+    <span className={`font-semibold tracking-tight ${className}`}>
+      <span
+        className="bg-clip-text text-transparent"
+        style={{
+          backgroundImage: variant === "light"
+            ? "linear-gradient(to right, #e8384f, #c0202e)"
+            : "linear-gradient(to right, #7b1e3a, #9a2d4a)",
+        }}
+      >
         Moi
       </span>
-      <span className="text-[var(--moifone-ink)]">fone</span>
+      <span className={variant === "light" ? "text-white" : "text-[var(--moifone-ink)]"}>
+        fone
+      </span>
     </span>
   );
 
