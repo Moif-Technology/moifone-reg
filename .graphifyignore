@@ -1,0 +1,10 @@
+node_modules/
+public/
+.next/
+out/
+package-lock.json
+jsconfig.json
+eslint.config.mjs
+next.config.mjs
+postcss.config.mjs
+app/globals.css
