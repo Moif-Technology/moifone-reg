@@ -3,21 +3,18 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  MessageSquare,
-  Shield,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, ArrowLeft } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
 import { SignupForm } from "@/components/signup/SignupForm";
 import { normalizePlanId } from "@/lib/plans";
 
+const ease = [0.22, 1, 0.36, 1];
+
 const benefits = [
-  "Structured profile we can map to intelligent defaults as your workspace goes live",
-  "ERP + POS provisioning with room for guided, type-aware configuration later",
-  "Operational controls, reporting depth, and automation scaled to your plan",
+  "ERP + POS provisioning with intelligent defaults",
+  "Guided configuration tailored to your business type",
+  "Inventory, staff & sales — unified from day one",
+  "Your data is never sold or shared",
 ];
 
 export function SignupContent() {
@@ -26,126 +23,105 @@ export function SignupContent() {
   const initialPlanId = normalizePlanId(raw);
 
   return (
-    <div className="min-h-screen bg-[var(--moifone-bg)]">
-      <header className="border-b border-[var(--moifone-border)] bg-[var(--moifone-bg)]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen flex-col lg:h-screen lg:flex-row lg:overflow-hidden">
+
+      {/* Left brand panel */}
+      <div
+        className="relative hidden w-[38%] flex-col justify-between overflow-hidden p-10 lg:flex xl:p-14"
+        style={{ background: "linear-gradient(160deg, #7b1e3a 0%, #9a2d4a 55%, #b03460 100%)" }}
+      >
+        {/* Glow blobs */}
+        <div className="pointer-events-none absolute right-[-60px] top-[20%] h-64 w-64 rounded-full bg-[#7b1e3a] opacity-20 blur-[80px]" />
+        <div className="pointer-events-none absolute bottom-[10%] left-[-40px] h-48 w-48 rounded-full bg-[#a83258] opacity-15 blur-[70px]" />
+
+        {/* Top: back link */}
+        <Link
+          href="/"
+          className="relative inline-flex items-center gap-1.5 text-sm text-white/40 transition-colors hover:text-white/70"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
+
+        {/* Center content */}
+        <div className="relative">
+          <BrandMark variant="light" className="text-xl" />
+          <h2 className="mt-8 text-2xl font-bold leading-snug text-white xl:text-[1.65rem]">
+            Start running your business<br />smarter today
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-white/50">
+            One platform for ERP + POS — register in minutes, go live with confidence.
+          </p>
+          <ul className="mt-8 space-y-3.5">
+            {benefits.map((b) => (
+              <li key={b} className="flex items-start gap-2.5 text-sm text-white/65">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#d4738a]" />
+                {b}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Bottom note */}
+        <p className="relative text-xs text-white/25">© 2025 Moifone · Privacy first</p>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex flex-1 flex-col overflow-y-auto bg-[var(--moifone-bg)] lg:h-screen">
+
+        {/* Mobile top bar */}
+        <div className="flex items-center justify-between border-b border-[var(--moifone-border)] bg-white/80 px-5 py-4 backdrop-blur-sm lg:hidden">
           <BrandMark />
           <Link
-            href="/#pricing"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--moifone-muted)] hover:text-[var(--moifone-primary)]"
+            href="/"
+            className="inline-flex items-center gap-1 text-sm text-[var(--moifone-muted)] hover:text-[var(--moifone-ink)]"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to pricing
+            Home
           </Link>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8 rounded-2xl border border-[var(--moifone-border)] bg-white/90 px-5 py-4 shadow-sm backdrop-blur-sm sm:px-6"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--moifone-primary)]">
-            Registration
-          </p>
-          <p className="mt-2 text-lg font-semibold text-[var(--moifone-ink)]">
-            Choose your plan and register
-          </p>
-          <p className="mt-2 text-sm text-[var(--moifone-muted)]">
-            Select your plan in the form. Compare tiers anytime on{" "}
-            <Link href="/#pricing" className="font-medium text-[var(--moifone-primary)] hover:underline">
-              pricing
-            </Link>
-            {initialPlanId ? " — we pre-selected the plan from your link." : "."}
-          </p>
-        </motion.div>
+        {/* Centered content */}
+        <div className="flex flex-1 items-start justify-center px-5 py-8 sm:px-8 lg:items-center lg:px-8 xl:px-12">
+          <div className="w-full max-w-lg">
 
-        <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
-          <motion.aside
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-5"
-          >
-            <div className="sticky top-24 space-y-6">
-              <div className="space-y-6 rounded-[1.75rem] border border-[var(--moifone-border)] bg-gradient-to-b from-white to-[#fdf8f9] p-6 shadow-sm sm:p-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-[var(--moifone-border)] bg-white/80 px-3 py-1 text-xs font-medium text-[var(--moifone-muted)]">
-                  <Sparkles className="h-3.5 w-3.5 text-[var(--moifone-primary)]" />
-                  Intelligent onboarding
-                </div>
-                <h1 className="text-2xl font-semibold tracking-tight text-[var(--moifone-ink)] sm:text-[1.65rem] leading-tight">
-                  Create your workspace—ready for smart setup
-                </h1>
-                <p className="text-sm leading-relaxed text-[var(--moifone-muted)]">
-                  Your answers establish a clean operational baseline. Downstream,
-                  Moifone can prioritize modules, defaults, and intelligent
-                  suggestions based on business type—starting with the blueprint
-                  preview beside your form.
-                </p>
-                <ul className="space-y-3">
-                  {benefits.map((line) => (
-                    <li key={line} className="flex gap-2.5 text-sm text-[var(--moifone-ink)]/90">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--moifone-primary)]" />
-                      <span className="leading-relaxed text-[var(--moifone-muted)]">
-                        {line}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-start gap-3 rounded-xl border border-[var(--moifone-border)] bg-white/70 p-4">
-                  <Shield className="h-5 w-5 shrink-0 text-[var(--moifone-primary)]" />
-                  <p className="text-xs leading-relaxed text-[var(--moifone-muted)]">
-                    Your information is used only to prepare your Moifone
-                    environment. We never sell registration data.
-                  </p>
-                </div>
-              </div>
-
-              <div className="rounded-[1.25rem] border border-dashed border-[#dcc9cf] bg-white/50 p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[var(--moifone-primary)]">
-                  <MessageSquare className="h-4 w-4" />
-                  Moifone Assistant
-                  <span className="rounded-md bg-[var(--moifone-rose-mist)] px-1.5 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-[var(--moifone-muted)]">
-                    Coming soon
-                  </span>
-                </div>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--moifone-muted)]">
-                  A conversational guide inside setup and daily operations—answering
-                  questions, surfacing next-best actions, and explaining signals in
-                  plain language. This registration flow is structured so Assistant
-                  can plug in without rework.
-                </p>
-              </div>
-            </div>
-          </motion.aside>
-
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-7"
-          >
-            <div className="rounded-[1.75rem] border border-[var(--moifone-border)] bg-white p-6 shadow-[0_24px_60px_-32px_rgba(26,20,24,0.18)] sm:p-8">
-              <h2 className="text-lg font-semibold text-[var(--moifone-ink)]">
-                Business &amp; account details
-              </h2>
-              <p className="mt-1 text-sm text-[var(--moifone-muted)]">
-                Fields marked with <span className="text-[var(--moifone-primary)]">*</span> are
-                required. Your business type unlocks a{" "}
-                <span className="font-medium text-[var(--moifone-ink)]/90">
-                  setup blueprint preview
-                </span>{" "}
-                for future smart configuration.
+            {/* Heading */}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease }}
+              className="mb-7"
+            >
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#7b1e3a]">
+                Registration
               </p>
-              <div className="mt-8">
-                <SignupForm initialPlanId={initialPlanId} />
-              </div>
-            </div>
-          </motion.div>
+              <h1 className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--moifone-ink)]">
+                Create your workspace
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                {initialPlanId
+                  ? "Your selected plan is pre-filled below."
+                  : "Select a plan and fill in your details to get started."}
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.08, ease }}
+            >
+              <SignupForm initialPlanId={initialPlanId} />
+            </motion.div>
+
+            <p className="mt-5 text-center text-xs text-gray-400">
+              Already have an account?{" "}
+              <Link href="/#pricing" className="font-semibold text-[#7b1e3a] hover:underline">
+                View pricing
+              </Link>
+            </p>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

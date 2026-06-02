@@ -8,23 +8,23 @@ import { businessTypeOptions } from "@/data/signupOptions";
 import { designationOptions } from "@/data/designationOptions";
 import { getSetupHints } from "@/data/setupHints";
 import { pricingPlans } from "@/data/pricing";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 const initial = {
-  companyName: "",
-  businessType: "",
-  firstName: "",
-  lastName: "",
-  designation: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  phone: "",
+  companyName: "", businessType: "", firstName: "", lastName: "",
+  designation: "", email: "", password: "", confirmPassword: "", phone: "",
 };
 
-function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
+const STEPS = [
+  { id: 1, label: "Plan" },
+  { id: 2, label: "Business" },
+  { id: 3, label: "Personal" },
+  { id: 4, label: "Security" },
+];
+
+function isValidEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v).trim());
 }
 
 function countryNameFromPhone(e164) {
@@ -33,9 +33,7 @@ function countryNameFromPhone(e164) {
     const p = parsePhoneNumber(e164);
     if (!p?.country) return undefined;
     return new Intl.DisplayNames(["en"], { type: "region" }).of(p.country);
-  } catch {
-    return undefined;
-  }
+  } catch { return undefined; }
 }
 
 function plansToOptions(plans) {
@@ -52,23 +50,15 @@ const fallbackPlanOptions = plansToOptions(pricingPlans);
 function getBrowserApiBase() {
   const configured = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
   if (typeof window === "undefined" || !configured) return configured;
-
   try {
     const url = new URL(configured);
     const pageHost = window.location.hostname;
-    const configuredIsLocal =
-      url.hostname === "localhost" ||
-      url.hostname === "127.0.0.1" ||
-      url.hostname === "::1";
-
-    if (configuredIsLocal && pageHost && pageHost !== "localhost") {
+    const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "::1";
+    if (isLocal && pageHost && pageHost !== "localhost") {
       url.hostname = pageHost;
       return url.toString().replace(/\/$/, "");
     }
-  } catch {
-    return configured;
-  }
-
+  } catch { return configured; }
   return configured;
 }
 
@@ -86,41 +76,24 @@ export function SignupForm({ initialPlanId }) {
   useEffect(() => {
     const base = getBrowserApiBase();
     if (!base) return;
-
     let cancelled = false;
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 2500);
-
     fetch(`${base}/api/plans`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (cancelled) return;
-        if (data?.plans?.length) {
-          setPlanOptions(plansToOptions(data.plans));
-        } else {
-          setPlanOptions(fallbackPlanOptions);
-        }
+        setPlanOptions(data?.plans?.length ? plansToOptions(data.plans) : fallbackPlanOptions);
       })
-      .catch(() => {
-        if (!cancelled) setPlanOptions(fallbackPlanOptions);
-      })
-      .finally(() => {
-        window.clearTimeout(timeoutId);
-      });
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timeoutId);
-      controller.abort();
-    };
+      .catch(() => { if (!cancelled) setPlanOptions(fallbackPlanOptions); })
+      .finally(() => window.clearTimeout(timeoutId));
+    return () => { cancelled = true; window.clearTimeout(timeoutId); controller.abort(); };
   }, []);
 
   useEffect(() => {
     if (!planOptions.length) return;
     const fromUrl = initialPlanId && planOptions.some((p) => p.id === initialPlanId);
-    if (fromUrl) {
-      setSelectedPlanId(initialPlanId);
-      return;
-    }
+    if (fromUrl) { setSelectedPlanId(initialPlanId); return; }
     setSelectedPlanId((prev) => prev || planOptions[0].id);
   }, [planOptions, initialPlanId]);
 
@@ -131,75 +104,46 @@ export function SignupForm({ initialPlanId }) {
 
   function validate() {
     const next = {};
-    if (!selectedPlanId) next.selectedPlanId = "Please select a plan.";
-    if (!values.companyName.trim()) next.companyName = "Company name is required.";
-    if (!values.businessType) next.businessType = "Please select a business type.";
-    if (!values.firstName.trim()) next.firstName = "First name is required.";
-    if (!values.lastName.trim()) next.lastName = "Last name is required.";
-    if (!values.designation) next.designation = "Please select a designation.";
-    if (!values.email.trim()) next.email = "Email is required.";
-    else if (!isValidEmail(values.email)) next.email = "Enter a valid email address.";
-    if (!values.password) next.password = "Password is required.";
-    else if (values.password.length < 8)
-      next.password = "Use at least 8 characters.";
-    if (values.password !== values.confirmPassword)
-      next.confirmPassword = "Passwords do not match.";
-
-    if (values.phone) {
-      if (!isValidPhoneNumber(values.phone)) {
-        next.phone =
-          "Enter a complete number for the selected country (length is checked automatically), or leave blank.";
-      }
-    }
-
+    if (!selectedPlanId) next.selectedPlanId = "Required";
+    if (!values.companyName.trim()) next.companyName = "Required";
+    if (!values.businessType) next.businessType = "Required";
+    if (!values.firstName.trim()) next.firstName = "Required";
+    if (!values.lastName.trim()) next.lastName = "Required";
+    if (!values.designation) next.designation = "Required";
+    if (!values.email.trim()) next.email = "Required";
+    else if (!isValidEmail(values.email)) next.email = "Invalid email";
+    if (!values.password) next.password = "Required";
+    else if (values.password.length < 8) next.password = "Min. 8 characters";
+    if (values.password !== values.confirmPassword) next.confirmPassword = "Passwords don't match";
+    if (values.phone && !isValidPhoneNumber(values.phone)) next.phone = "Invalid phone number";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setSubmitted(false);
-    setApiError("");
     if (!validate()) return;
-
+    setApiError("");
     const baseUrl = getBrowserApiBase();
-    if (!baseUrl) {
-      setApiError("Registration is not configured (missing NEXT_PUBLIC_API_URL).");
-      return;
-    }
-
-    const setupBlueprint = getSetupHints(values.businessType);
-    const country = countryNameFromPhone(values.phone);
+    if (!baseUrl) { setApiError("Registration is not configured (missing NEXT_PUBLIC_API_URL)."); return; }
     const payload = {
-      selectedPlan: selectedPlanId,
-      setupBlueprint,
-      companyName: values.companyName,
-      businessType: values.businessType,
-      firstName: values.firstName,
-      lastName: values.lastName,
-      designation: values.designation,
-      email: values.email,
-      password: values.password,
-      phone: values.phone || null,
-      country: country || null,
+      selectedPlan: selectedPlanId, setupBlueprint: getSetupHints(values.businessType),
+      companyName: values.companyName, businessType: values.businessType,
+      firstName: values.firstName, lastName: values.lastName,
+      designation: values.designation, email: values.email,
+      password: values.password, phone: values.phone || null,
+      country: countryNameFromPhone(values.phone) || null,
     };
-
     setSubmitting(true);
     const controller = new AbortController();
     const timeoutId = window.setTimeout(() => controller.abort(), 15000);
-
     try {
       const res = await fetch(`${baseUrl}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify(payload),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        signal: controller.signal, body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setApiError(data.message || `Registration failed (${res.status}).`);
-        return;
-      }
+      if (!res.ok) { setApiError(data.message || `Registration failed (${res.status}).`); return; }
       setSubmitted(true);
     } catch {
       setApiError("Could not reach the server. Check your connection and try again.");
@@ -209,323 +153,176 @@ export function SignupForm({ initialPlanId }) {
     }
   }
 
-  const inputClass =
-    "mt-1.5 w-full rounded-xl border border-[var(--moifone-border)] bg-white px-3.5 py-2.5 text-sm text-[var(--moifone-ink)] shadow-sm transition-colors placeholder:text-[var(--moifone-muted)]/60 focus:border-[#c9a8b2] focus:outline-none focus:ring-2 focus:ring-[#7b1e3a]/15";
+  const inp =
+    "w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-[var(--moifone-ink)] transition-all placeholder:text-gray-400 focus:border-[#7b1e3a] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#7b1e3a]/10";
 
-  const inputClassNoTop =
-    "w-full rounded-xl border border-[var(--moifone-border)] bg-white px-3.5 py-2.5 text-sm text-[var(--moifone-ink)] shadow-sm transition-colors placeholder:text-[var(--moifone-muted)]/60 focus:border-[#c9a8b2] focus:outline-none focus:ring-2 focus:ring-[#7b1e3a]/15";
+  const lbl = "mb-1 block text-[11px] font-semibold text-gray-500";
 
-  const labelClass = "text-xs font-medium text-[var(--moifone-ink)]";
+  const errMsg = "mt-0.5 text-[10px] text-red-500";
 
-  const passwordToggleBtn =
-    "absolute right-2 top-1/2 z-[1] -translate-y-1/2 rounded-md p-1 text-[var(--moifone-muted)] transition-colors hover:bg-[var(--moifone-bg)] hover:text-[var(--moifone-ink)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7b1e3a]/25";
-  const setupHints = getSetupHints(values.businessType);
+
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center gap-3 py-10 text-center"
+      >
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+          <Check className="h-7 w-7 text-emerald-600" />
+        </div>
+        <h3 className="text-base font-bold text-[var(--moifone-ink)]">Workspace registered!</h3>
+        <p className="max-w-xs text-xs text-gray-500">Sign in to the ERP back office with your email and password.</p>
+      </motion.div>
+    );
+  }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-5"
-      noValidate
-    >
-      <div>
-        <label htmlFor="selectedPlanId" className={labelClass}>
-          Plan <span className="text-[var(--moifone-primary)]">*</span>
-        </label>
-        <select
-          id="selectedPlanId"
-          name="selectedPlanId"
-          value={selectedPlanId}
-          onChange={(e) => {
-            setSelectedPlanId(e.target.value);
-            setErrors((err) => ({ ...err, selectedPlanId: undefined }));
-          }}
-          className={inputClass}
-        >
-          {planOptions.length === 0 ? (
-            <option value="">Loading plans…</option>
-          ) : (
-            planOptions.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))
-          )}
-        </select>
-        {errors.selectedPlanId && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.selectedPlanId}</p>
-        )}
-        <p className="mt-1.5 text-[11px] text-[var(--moifone-muted)]">
-          Branch limits follow your plan. You can confirm details with our team after signup.
-        </p>
-      </div>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
 
-      <div>
-        <label htmlFor="companyName" className={labelClass}>
-          Company / business name <span className="text-[var(--moifone-primary)]">*</span>
-        </label>
-        <input
-          id="companyName"
-          name="companyName"
-          autoComplete="organization"
-          value={values.companyName}
-          onChange={(e) => setField("companyName", e.target.value)}
-          className={inputClass}
-          placeholder="Registered or trading name"
-        />
-        {errors.companyName && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.companyName}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="businessType" className={labelClass}>
-          Business type / software usage <span className="text-[var(--moifone-primary)]">*</span>
-        </label>
-        <select
-          id="businessType"
-          name="businessType"
-          value={values.businessType}
-          onChange={(e) => setField("businessType", e.target.value)}
-          className={inputClass}
-        >
-          <option value="">Select type</option>
-          {businessTypeOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        {errors.businessType && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.businessType}</p>
-        )}
-      </div>
-
-      <AnimatePresence initial={false}>
-        {setupHints && values.businessType && (
-          <motion.div
-            key={values.businessType}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="rounded-xl border border-[var(--moifone-border)] bg-[var(--moifone-bg)]/90 px-4 py-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--moifone-primary)]">
-                Setup blueprint preview
-              </p>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--moifone-muted)]">
-                {setupHints.summary}{" "}
-                <span className="text-[var(--moifone-ink)]/80">
-                  (Used to prioritize configuration; future Moifone Assistant
-                  suggestions will align with this structure.)
+      {/* ── Step tracker ── */}
+      <div className="flex items-center overflow-x-auto pb-1">
+        {STEPS.map((s, i) => {
+          const done =
+            (s.id === 1 && !!selectedPlanId) ||
+            (s.id === 2 && !!values.companyName && !!values.businessType) ||
+            (s.id === 3 && !!values.firstName && !!values.lastName && !!values.designation) ||
+            (s.id === 4 && !!values.email && !!values.password);
+          return (
+            <div key={s.id} className="flex flex-1 items-center">
+              <div className="flex flex-col items-center gap-1">
+                <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold transition-all ${done ? "bg-[#7b1e3a] text-white shadow-sm" : "bg-gray-100 text-gray-400"}`}>
+                  {done ? <Check className="h-3.5 w-3.5" /> : s.id}
                 </span>
-              </p>
-              <ul className="mt-3 space-y-1.5 border-t border-[var(--moifone-border)] pt-3">
-                {setupHints.modules.map((m) => (
-                  <li
-                    key={m}
-                    className="flex items-center gap-2 text-xs text-[var(--moifone-ink)]/85"
-                  >
-                    <span className="h-1 w-1 shrink-0 rounded-full bg-[var(--moifone-primary)]/70" />
-                    {m}
-                  </li>
-                ))}
-              </ul>
+                <span className={`text-[9px] font-semibold uppercase tracking-wide ${done ? "text-[#7b1e3a]" : "text-gray-300"}`}>{s.label}</span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className="mx-2 mb-4 h-px flex-1 transition-all" style={{ background: done ? "#7b1e3a" : "#e5e7eb" }} />
+              )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          );
+        })}
+      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* ── Fields ── */}
+      <div className="space-y-3">
+
+        {/* Plan */}
         <div>
-          <label htmlFor="firstName" className={labelClass}>
-            First name <span className="text-[var(--moifone-primary)]">*</span>
-          </label>
-          <input
-            id="firstName"
-            name="firstName"
-            autoComplete="given-name"
-            value={values.firstName}
-            onChange={(e) => setField("firstName", e.target.value)}
-            className={inputClass}
-          />
-          {errors.firstName && (
-            <p className="mt-1.5 text-xs text-red-600/90">{errors.firstName}</p>
-          )}
+          <label className={lbl}>Select plan <span className="text-[#7b1e3a]">*</span></label>
+          <select value={selectedPlanId}
+            onChange={(e) => { setSelectedPlanId(e.target.value); setErrors((er) => ({ ...er, selectedPlanId: undefined })); }}
+            className={inp}>
+            {planOptions.length === 0
+              ? <option value="">Loading…</option>
+              : planOptions.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)
+            }
+          </select>
+          {errors.selectedPlanId && <p className={errMsg}>{errors.selectedPlanId}</p>}
+        </div>
+
+        {/* Business */}
+        <div>
+          <label className={lbl}>Company / business name <span className="text-[#7b1e3a]">*</span></label>
+          <input value={values.companyName} onChange={(e) => setField("companyName", e.target.value)}
+            className={inp} placeholder="Registered or trading name" autoComplete="organization" />
+          {errors.companyName && <p className={errMsg}>{errors.companyName}</p>}
         </div>
         <div>
-          <label htmlFor="lastName" className={labelClass}>
-            Last name <span className="text-[var(--moifone-primary)]">*</span>
-          </label>
-          <input
-            id="lastName"
-            name="lastName"
-            autoComplete="family-name"
-            value={values.lastName}
-            onChange={(e) => setField("lastName", e.target.value)}
-            className={inputClass}
-          />
-          {errors.lastName && (
-            <p className="mt-1.5 text-xs text-red-600/90">{errors.lastName}</p>
-          )}
+          <label className={lbl}>Business type <span className="text-[#7b1e3a]">*</span></label>
+          <select value={values.businessType} onChange={(e) => setField("businessType", e.target.value)} className={inp}>
+            <option value="">Select type</option>
+            {businessTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          {errors.businessType && <p className={errMsg}>{errors.businessType}</p>}
         </div>
-      </div>
 
-      <div>
-        <label htmlFor="designation" className={labelClass}>
-          Designation <span className="text-[var(--moifone-primary)]">*</span>
-        </label>
-        <select
-          id="designation"
-          name="designation"
-          value={values.designation}
-          onChange={(e) => setField("designation", e.target.value)}
-          className={inputClass}
-        >
-          {designationOptions.map((o) => (
-            <option key={o.value || "empty"} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        {errors.designation && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.designation}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="email" className={labelClass}>
-          Email address <span className="text-[var(--moifone-primary)]">*</span>
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          value={values.email}
-          onChange={(e) => setField("email", e.target.value)}
-          className={inputClass}
-          placeholder="you@company.com"
-        />
-        {errors.email && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.email}</p>
-        )}
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="password" className={labelClass}>
-            Password <span className="text-[var(--moifone-primary)]">*</span>
-          </label>
-          <div className="relative mt-1.5">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={values.password}
-              onChange={(e) => setField("password", e.target.value)}
-              className={`${inputClassNoTop} pr-10`}
-            />
-            <button
-              type="button"
-              className={passwordToggleBtn}
-              onClick={() => setShowPassword((s) => !s)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" strokeWidth={2} aria-hidden />
-              ) : (
-                <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
-              )}
-            </button>
+        {/* Personal */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={lbl}>First name <span className="text-[#7b1e3a]">*</span></label>
+            <input value={values.firstName} onChange={(e) => setField("firstName", e.target.value)}
+              className={inp} placeholder="First name" autoComplete="given-name" />
+            {errors.firstName && <p className={errMsg}>{errors.firstName}</p>}
           </div>
-          {errors.password && (
-            <p className="mt-1.5 text-xs text-red-600/90">{errors.password}</p>
-          )}
+          <div>
+            <label className={lbl}>Last name <span className="text-[#7b1e3a]">*</span></label>
+            <input value={values.lastName} onChange={(e) => setField("lastName", e.target.value)}
+              className={inp} placeholder="Last name" autoComplete="family-name" />
+            {errors.lastName && <p className={errMsg}>{errors.lastName}</p>}
+          </div>
         </div>
         <div>
-          <label htmlFor="confirmPassword" className={labelClass}>
-            Confirm password <span className="text-[var(--moifone-primary)]">*</span>
-          </label>
-          <div className="relative mt-1.5">
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              autoComplete="new-password"
-              value={values.confirmPassword}
-              onChange={(e) => setField("confirmPassword", e.target.value)}
-              className={`${inputClassNoTop} pr-10`}
-            />
-            <button
-              type="button"
-              className={passwordToggleBtn}
-              onClick={() => setShowConfirmPassword((s) => !s)}
-              aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-            >
-              {showConfirmPassword ? (
-                <EyeOff className="h-4 w-4" strokeWidth={2} aria-hidden />
-              ) : (
-                <Eye className="h-4 w-4" strokeWidth={2} aria-hidden />
-              )}
-            </button>
+          <label className={lbl}>Designation <span className="text-[#7b1e3a]">*</span></label>
+          <select value={values.designation} onChange={(e) => setField("designation", e.target.value)} className={inp}>
+            {designationOptions.map((o) => <option key={o.value || "empty"} value={o.value}>{o.label}</option>)}
+          </select>
+          {errors.designation && <p className={errMsg}>{errors.designation}</p>}
+        </div>
+        <div>
+          <label className={lbl}>Phone <span className="text-gray-400 font-normal">(optional)</span></label>
+          <PhoneInput
+            international defaultCountry="IN" countryCallingCodeEditable={false} limitMaxLength
+            value={values.phone || undefined} onChange={(v) => setField("phone", v || "")}
+            className="moifone-phone w-full"
+            numberInputProps={{ autoComplete: "tel" }}
+          />
+          {errors.phone && <p className={errMsg}>{errors.phone}</p>}
+        </div>
+
+        {/* Security */}
+        <div>
+          <label className={lbl}>Email address <span className="text-[#7b1e3a]">*</span></label>
+          <input type="email" value={values.email} onChange={(e) => setField("email", e.target.value)}
+            className={inp} placeholder="you@company.com" autoComplete="email" />
+          {errors.email && <p className={errMsg}>{errors.email}</p>}
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className={lbl}>Password <span className="text-[#7b1e3a]">*</span></label>
+            <div className="relative">
+              <input type={showPassword ? "text" : "password"} value={values.password}
+                onChange={(e) => setField("password", e.target.value)}
+                className={`${inp} pr-8`} placeholder="Min. 8 chars" autoComplete="new-password" />
+              <button type="button" onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+            {errors.password && <p className={errMsg}>{errors.password}</p>}
           </div>
-          {errors.confirmPassword && (
-            <p className="mt-1.5 text-xs text-red-600/90">{errors.confirmPassword}</p>
-          )}
+          <div>
+            <label className={lbl}>Confirm password <span className="text-[#7b1e3a]">*</span></label>
+            <div className="relative">
+              <input type={showConfirmPassword ? "text" : "password"} value={values.confirmPassword}
+                onChange={(e) => setField("confirmPassword", e.target.value)}
+                className={`${inp} pr-8`} placeholder="Repeat password" autoComplete="new-password" />
+              <button type="button" onClick={() => setShowConfirmPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+            {errors.confirmPassword && <p className={errMsg}>{errors.confirmPassword}</p>}
+          </div>
         </div>
       </div>
 
-      <div>
-        <label htmlFor="phone" className={labelClass}>
-          Phone number <span className="text-[var(--moifone-muted)]">(optional)</span>
-        </label>
-        <PhoneInput
-          id="phone"
-          international
-          defaultCountry="IN"
-          countryCallingCodeEditable={false}
-          limitMaxLength
-          value={values.phone || undefined}
-          onChange={(v) => setField("phone", v || "")}
-          className="moifone-phone w-full"
-          numberInputProps={{
-            id: "phone-national",
-            name: "phone",
-            autoComplete: "tel",
-          }}
-        />
-        {errors.phone && (
-          <p className="mt-1.5 text-xs text-red-600/90">{errors.phone}</p>
-        )}
-      </div>
-
+      {/* Alerts */}
       {apiError && (
-        <p className="rounded-xl border border-red-200/90 bg-red-50/90 px-4 py-3 text-sm text-red-900">
-          {apiError}
-        </p>
+        <div className="rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700">{apiError}</div>
       )}
-
       <AnimatePresence>
         {submitted && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            className="rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900"
-          >
-            Your workspace is registered. You can sign in to the ERP back office
-            with the email and password you provided.
+          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+            Workspace registered! Sign in with your email and password.
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Submit */}
       <Button
-        type="submit"
-        variant="primary"
-        className="w-full !py-3 text-sm"
+        type="submit" variant="primary"
+        className="w-full !rounded-xl !py-2.5 !text-sm !font-semibold shadow-lg shadow-[#7b1e3a]/20"
         disabled={submitting || planOptions.length === 0}
       >
         {submitting ? "Submitting…" : "Complete registration"}

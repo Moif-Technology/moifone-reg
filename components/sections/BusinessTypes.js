@@ -24,7 +24,7 @@ export function BusinessTypes() {
             </p>
 
             {/* Items row */}
-            <div className="mt-8 grid grid-cols-4 gap-y-6 sm:mt-10 sm:flex sm:divide-x sm:divide-white/[0.08]">
+            <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 sm:mt-10 sm:flex sm:divide-x sm:divide-white/[0.08]">
               {businessTypes.map((b, i) => {
                 const Icon = b.icon;
                 return (
