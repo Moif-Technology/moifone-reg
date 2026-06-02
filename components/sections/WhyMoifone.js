@@ -89,7 +89,7 @@ export function WhyMoifone() {
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
 
           {/* Left-aligned header */}
-          <FadeIn className="mb-8 max-w-xl">
+          <FadeIn className="mb-6 max-w-xl sm:mb-8">
             <span className="inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/80">
               Why Moifone
             </span>

@@ -47,11 +47,37 @@ export function Features() {
           </h2>
         </div>
 
-        {/* Staggered rows — 6-col grid, each card spans 2 cols */}
-        <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Mobile/tablet: flat 2-col grid */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
+          {featureItems.map((f, i) => {
+            return (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20px" }}
+                transition={{ duration: 0.4, delay: i * 0.03, ease }}
+                className="rounded-xl border border-[var(--moifone-border)] bg-white/80 p-4 shadow-sm backdrop-blur-sm"
+              >
+                <p className="mb-1.5 text-[10px] font-bold tracking-widest text-[var(--moifone-primary)]/50">
+                  {i + 1}.
+                </p>
+                <h3 className="text-sm font-semibold leading-snug text-[var(--moifone-ink)]">{f.title}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-[var(--moifone-muted)]">{f.description}</p>
+                {f.signals && (
+                  <span className="mt-2 inline-block rounded bg-[var(--moifone-rose-mist)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-[var(--moifone-primary)]/80">
+                    Signals
+                  </span>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Desktop: staggered rows — 6-col grid, each card spans 2 cols */}
+        <div className="hidden flex-col gap-3 lg:flex lg:gap-4">
           {rows.map((row, ri) => (
-            <div key={ri} className="grid grid-cols-6 gap-3 sm:gap-4">
-              {/* 1-col spacer shifts 2-item rows to center (col 1 + col 6 both empty) */}
+            <div key={ri} className="grid grid-cols-6 gap-4">
               {row.indent && <div />}
 
               {row.items.map((f) => (
@@ -82,7 +108,8 @@ export function Features() {
               ))}
             </div>
           ))}
-        </div>
+        </div>{/* end desktop stagger */}
+
       </div>
     </section>
   );

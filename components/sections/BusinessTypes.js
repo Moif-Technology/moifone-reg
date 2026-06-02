@@ -6,10 +6,10 @@ import { FadeIn } from "@/components/ui/FadeIn";
 
 export function BusinessTypes() {
   return (
-    <section className="border-b border-[var(--moifone-border)] bg-[var(--moifone-bg)] py-16 sm:py-20">
+    <section className="border-b border-[var(--moifone-border)] bg-[var(--moifone-bg)] py-10 sm:py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="rounded-2xl bg-[var(--moifone-ink)] px-8 py-10 sm:px-10 sm:py-12">
+          <div className="rounded-2xl bg-[var(--moifone-ink)] px-5 py-8 sm:px-8 sm:py-10 lg:px-10 lg:py-12">
             {/* Top label + heading + description */}
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#d4738a]">
               Solutions
@@ -24,7 +24,7 @@ export function BusinessTypes() {
             </p>
 
             {/* Items row */}
-            <div className="mt-10 flex divide-x divide-white/[0.08] overflow-x-auto">
+            <div className="mt-8 grid grid-cols-4 gap-y-6 sm:mt-10 sm:flex sm:divide-x sm:divide-white/[0.08]">
               {businessTypes.map((b, i) => {
                 const Icon = b.icon;
                 return (
@@ -35,7 +35,7 @@ export function BusinessTypes() {
                     viewport={{ once: true, margin: "-24px" }}
                     transition={{ duration: 0.4, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] }}
                     whileHover="hovered"
-                    className="flex min-w-[110px] flex-1 cursor-default flex-col gap-4 px-5 first:pl-0 last:pr-0"
+                    className="flex cursor-default flex-col gap-3 sm:min-w-[100px] sm:flex-1 sm:gap-4 sm:px-5 sm:first:pl-0 sm:last:pr-0"
                   >
                     <motion.span
                       variants={{

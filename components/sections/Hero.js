@@ -64,7 +64,7 @@ export function Hero() {
           {/* Heading */}
           <motion.h1
             variants={fadeUp}
-            className="mt-5 text-[2.75rem] font-black leading-[1.04] tracking-tight text-[var(--moifone-ink)] sm:text-5xl lg:text-[3.5rem]"
+            className="mt-5 text-[2rem] font-black leading-[1.08] tracking-tight text-[var(--moifone-ink)] sm:text-[2.75rem] sm:leading-[1.04] lg:text-[3.5rem]"
           >
             Set up and run your{" "}
             <span className="text-[var(--moifone-primary)]">business smarter</span>
@@ -133,8 +133,8 @@ export function Hero() {
           </motion.div>
         </motion.div>
 
-        {/* Right: floating console card */}
-        <div className="flex items-center justify-center">
+        {/* Right: floating console card — hidden on mobile, shown on lg+ */}
+        <div className="hidden items-center justify-center lg:flex">
           <motion.div
             initial={{ opacity: 0, y: 48, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
