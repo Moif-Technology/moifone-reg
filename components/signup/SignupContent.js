@@ -9,6 +9,7 @@ import { SignupForm } from "@/components/signup/SignupForm";
 import { normalizePlanId } from "@/lib/plans";
 
 const ease = [0.22, 1, 0.36, 1];
+const spring = { type: "spring", stiffness: 280, damping: 26 };
 
 const benefits = [
   "ERP + POS provisioning with intelligent defaults",
@@ -44,23 +45,42 @@ export function SignupContent() {
         </Link>
 
         {/* Center content */}
-        <div className="relative">
-          <BrandMark variant="light" className="text-xl" />
-          <h2 className="mt-8 text-2xl font-bold leading-snug text-white xl:text-[1.65rem]">
+        <motion.div
+          className="relative"
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1 } } }}
+        >
+          <motion.div variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { ...spring } } }}>
+            <BrandMark variant="light" className="text-xl" />
+          </motion.div>
+          <motion.h2
+            variants={{ hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { ...spring } } }}
+            className="mt-8 text-2xl font-bold leading-snug text-white xl:text-[1.65rem]"
+          >
             Start running your business<br />smarter today
-          </h2>
-          <p className="mt-3 text-sm leading-relaxed text-white/50">
+          </motion.h2>
+          <motion.p
+            variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { ...spring } } }}
+            className="mt-3 text-sm leading-relaxed text-white/50"
+          >
             One platform for ERP + POS — register in minutes, go live with confidence.
-          </p>
+          </motion.p>
           <ul className="mt-8 space-y-3.5">
-            {benefits.map((b) => (
-              <li key={b} className="flex items-start gap-2.5 text-sm text-white/65">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#d4738a]" />
+            {benefits.map((b, i) => (
+              <motion.li
+                key={b}
+                variants={{ hidden: { opacity: 0, x: -16 }, show: { opacity: 1, x: 0, transition: { ...spring, delay: i * 0.06 } } }}
+                className="flex items-start gap-2.5 text-sm text-white/65"
+              >
+                <motion.span whileHover={{ scale: 1.2, transition: spring }} className="mt-0.5 shrink-0">
+                  <CheckCircle2 className="h-4 w-4 text-[#d4738a]" />
+                </motion.span>
                 {b}
-              </li>
+              </motion.li>
             ))}
           </ul>
-        </div>
+        </motion.div>
 
         {/* Bottom note */}
         <p className="relative text-xs text-white/25">© 2025 Moifone · Privacy first</p>

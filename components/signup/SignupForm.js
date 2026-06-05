@@ -190,13 +190,41 @@ export function SignupForm({ initialPlanId }) {
           return (
             <div key={s.id} className="flex flex-1 items-center">
               <div className="flex flex-col items-center gap-1">
-                <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold transition-all ${done ? "bg-[#7b1e3a] text-white shadow-sm" : "bg-gray-100 text-gray-400"}`}>
-                  {done ? <Check className="h-3.5 w-3.5" /> : s.id}
-                </span>
-                <span className={`text-[9px] font-semibold uppercase tracking-wide ${done ? "text-[#7b1e3a]" : "text-gray-300"}`}>{s.label}</span>
+                <motion.span
+                  animate={{
+                    backgroundColor: done ? "#7b1e3a" : "#f3f4f6",
+                    scale: done ? [1, 1.18, 1] : 1,
+                  }}
+                  transition={{ type: "spring", stiffness: 360, damping: 22 }}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold"
+                  style={{ color: done ? "#fff" : "#9ca3af" }}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {done ? (
+                      <motion.span key="check" initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 400, damping: 20 }}>
+                        <Check className="h-3.5 w-3.5" />
+                      </motion.span>
+                    ) : (
+                      <motion.span key="num" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        {s.id}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.span>
+                <motion.span
+                  animate={{ color: done ? "#7b1e3a" : "#d1d5db" }}
+                  transition={{ duration: 0.25 }}
+                  className="text-[9px] font-semibold uppercase tracking-wide"
+                >
+                  {s.label}
+                </motion.span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className="mx-2 mb-4 h-px flex-1 transition-all" style={{ background: done ? "#7b1e3a" : "#e5e7eb" }} />
+                <motion.div
+                  className="mx-2 mb-4 h-px flex-1"
+                  animate={{ backgroundColor: done ? "#7b1e3a" : "#e5e7eb" }}
+                  transition={{ duration: 0.4 }}
+                />
               )}
             </div>
           );
